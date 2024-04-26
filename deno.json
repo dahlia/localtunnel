@@ -1,0 +1,11 @@
+{
+  "name": "@hongminhee/localtunnel",
+  "version": "0.1.0",
+  "exports": "./mod.ts",
+  "lock": false,
+  "tasks": {
+    "check": "deno fmt --check && deno check **/*.ts",
+    "hooks:install": "deno run --allow-read=deno.json,.git/hooks/ --allow-write=.git/hooks/ jsr:@hongminhee/deno-task-hooks",
+    "hooks:pre-commit": "deno task check"
+  }
+}
