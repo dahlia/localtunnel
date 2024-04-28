@@ -46,3 +46,17 @@ For more information, see the [API documentation][JSR].
 [`Tunnel`]: https://jsr.io/@hongminhee/localtunnel/doc/~/Tunnel
 [`url`]: https://jsr.io/@hongminhee/localtunnel/doc/~/Tunnel.url
 [`close()`]: https://jsr.io/@hongminhee/localtunnel/doc/~/Tunnel.close
+
+
+Changelog
+---------
+
+### Version 0.1.1
+
+To be released.
+
+ -  Fixed a bug in `openTunnel()` that breaks standard input on Windows.
+
+### Version 0.1.0
+
+Initial release.  Released on April 26, 2024.

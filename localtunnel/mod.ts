@@ -1,4 +1,9 @@
-import { chooseService, Service, ServiceName, SERVICES } from "./service.ts";
+import {
+  chooseService,
+  type Service,
+  type ServiceName,
+  SERVICES,
+} from "./service.ts";
 
 /**
  * Checks if `ssh` is installed on the system.
@@ -86,11 +91,11 @@ export async function openTunnel(options: TunnelOptions): Promise<Tunnel> {
       `${service.port}:localhost:${options.port}`,
       service.user == null ? service.host : `${service.user}@${service.host}`,
     ],
-    stdin: "null",
+    stdin: "piped",
     stdout: "piped",
     stderr: "null",
   });
-  const process = await cmd.spawn();
+  const process = cmd.spawn();
   const reader = process.stdout.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
