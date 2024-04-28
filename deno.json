@@ -1,6 +1,6 @@
 {
   "name": "@hongminhee/localtunnel",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "exports": "./mod.ts",
   "imports": {
     "@logtape/logtape": "jsr:@logtape/logtape@^0.2.2"
