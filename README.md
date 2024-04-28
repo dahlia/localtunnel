@@ -46,3 +46,25 @@ For more information, see the [API documentation][JSR].
 [`Tunnel`]: https://jsr.io/@hongminhee/localtunnel/doc/~/Tunnel
 [`url`]: https://jsr.io/@hongminhee/localtunnel/doc/~/Tunnel.url
 [`close()`]: https://jsr.io/@hongminhee/localtunnel/doc/~/Tunnel.close
+
+
+Changelog
+---------
+
+### Version 0.2.0
+
+To be released.
+
+### Version 0.1.1
+
+Released on April 28, 2024.
+
+ -  Fixed a bug in `openTunnel()` that breaks standard input on Windows.
+ -  Improved error handling in `openTunnel()`.
+ -  Added log messages using [LogTape].  The log category is `["localtunnel"]`.
+
+[LogTape]: https://github.com/dahlia/logtape
+
+### Version 0.1.0
+
+Initial release.  Released on April 26, 2024.

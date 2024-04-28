@@ -2,6 +2,9 @@
   "name": "@hongminhee/localtunnel",
   "version": "0.2.0",
   "exports": "./mod.ts",
+  "imports": {
+    "@logtape/logtape": "jsr:@logtape/logtape@^0.2.2"
+  },
   "lock": false,
   "tasks": {
     "check": "deno fmt --check && deno check **/*.ts",
