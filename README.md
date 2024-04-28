@@ -10,7 +10,7 @@ Currently it supports [localhost.run] and [serveo.net].  The module is designed
 to be simple to use and to provide a consistent interface to both services.
 
 [JSR]: https://jsr.io/@hongminhee/localtunnel
-[JSR badge]: https://jsr.io/badges/@<scope>/<package>
+[JSR badge]: https://jsr.io/badges/@hongminhee/localtunnel
 [localhost.run]: https://localhost.run/
 [serveo.net]: https://serveo.net/
 
