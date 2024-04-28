@@ -53,7 +53,7 @@ Changelog
 
 ### Version 0.1.1
 
-To be released.
+Released on April 28, 2024.
 
  -  Fixed a bug in `openTunnel()` that breaks standard input on Windows.
  -  Improved error handling in `openTunnel()`.
