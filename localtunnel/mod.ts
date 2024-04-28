@@ -1,9 +1,12 @@
+import { getLogger, type Logger } from "@logtape/logtape";
 import {
   chooseService,
   type Service,
   type ServiceName,
   SERVICES,
 } from "./service.ts";
+
+const logger: Logger = getLogger("localtunnel");
 
 /**
  * Checks if `ssh` is installed on the system.
@@ -83,7 +86,7 @@ export async function openTunnel(options: TunnelOptions): Promise<Tunnel> {
   const service: Service = typeof options.service === "string"
     ? SERVICES[options.service]
     : options.service ?? chooseService();
-  const cmd = new Deno.Command("ssh", {
+  const cmdOpts: Deno.CommandOptions = {
     args: [
       "-o",
       "StrictHostKeyChecking no",
@@ -94,7 +97,12 @@ export async function openTunnel(options: TunnelOptions): Promise<Tunnel> {
     stdin: "piped",
     stdout: "piped",
     stderr: "null",
-  });
+  };
+  const cmd = new Deno.Command("ssh", cmdOpts);
+  logger.debug(
+    "Spawning the ssh process: {command}",
+    { command: { command: "ssh", ...cmdOpts } },
+  );
   const process = cmd.spawn();
   const reader = process.stdout.getReader();
   const decoder = new TextDecoder();
@@ -108,12 +116,14 @@ export async function openTunnel(options: TunnelOptions): Promise<Tunnel> {
       } catch (_) {
         await process.status;
       }
+      logger.error("The tunnel URL is not found: {stdout}", { stdout: buffer });
       throw new Error("The tunnel URL is not found.");
     }
     buffer += decoder.decode(value);
     const match = service.urlPattern.exec(buffer);
     if (match != null) {
       url = new URL(match[0]);
+      logger.debug("The tunnel URL is found: {url}", { url: url.href });
       break;
     }
   }
@@ -122,6 +132,7 @@ export async function openTunnel(options: TunnelOptions): Promise<Tunnel> {
     localPort: options.port,
     pid: process.pid,
     async close() {
+      logger.debug("Closing the tunnel...");
       try {
         process.kill();
       } catch (_) {

@@ -57,6 +57,9 @@ To be released.
 
  -  Fixed a bug in `openTunnel()` that breaks standard input on Windows.
  -  Improved error handling in `openTunnel()`.
+ -  Added log messages using [LogTape].  The log category is `["localtunnel"]`.
+
+[LogTape]: https://github.com/dahlia/logtape
 
 ### Version 0.1.0
 
