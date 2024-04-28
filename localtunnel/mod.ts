@@ -103,7 +103,11 @@ export async function openTunnel(options: TunnelOptions): Promise<Tunnel> {
   while (true) {
     const { done, value } = await reader.read();
     if (done) {
-      process.kill();
+      try {
+        process.kill();
+      } catch (_) {
+        await process.status;
+      }
       throw new Error("The tunnel URL is not found.");
     }
     buffer += decoder.decode(value);
@@ -117,9 +121,12 @@ export async function openTunnel(options: TunnelOptions): Promise<Tunnel> {
     url,
     localPort: options.port,
     pid: process.pid,
-    close() {
-      process.kill();
-      return Promise.resolve();
+    async close() {
+      try {
+        process.kill();
+      } catch (_) {
+        await process.status;
+      }
     },
   };
 }

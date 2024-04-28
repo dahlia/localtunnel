@@ -56,6 +56,7 @@ Changelog
 To be released.
 
  -  Fixed a bug in `openTunnel()` that breaks standard input on Windows.
+ -  Improved error handling in `openTunnel()`.
 
 ### Version 0.1.0
 
