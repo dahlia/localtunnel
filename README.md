@@ -55,6 +55,8 @@ Changelog
 
 To be released.
 
+ -  Added `exclude` option to `TunnelOptions` interface.
+
 ### Version 0.1.1
 
 Released on April 28, 2024.

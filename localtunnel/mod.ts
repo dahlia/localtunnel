@@ -34,8 +34,15 @@ export interface TunnelOptions {
 
   /**
    * The service to use.  If not provided, a random service will be chosen.
+   * If provided, the `exclude` option is ignored.
    */
   service?: Service | ServiceName;
+
+  /**
+   * The services to exclude from the random selection.  If the `service` option
+   * is provided, this option is ignored.
+   */
+  exclude?: (ServiceName | Service)[];
 }
 
 /**
@@ -85,7 +92,7 @@ export async function openTunnel(options: TunnelOptions): Promise<Tunnel> {
   }
   const service: Service = typeof options.service === "string"
     ? SERVICES[options.service]
-    : options.service ?? chooseService();
+    : options.service ?? chooseService(options.exclude);
   const cmdOpts: Deno.CommandOptions = {
     args: [
       "-o",
