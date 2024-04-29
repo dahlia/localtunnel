@@ -56,6 +56,8 @@ Changelog
 To be released.
 
  -  Added `exclude` option to `TunnelOptions` interface.
+ -  Now `openTunnel()` automatically retries with another service if the first
+    service fails.
 
 ### Version 0.1.1
 

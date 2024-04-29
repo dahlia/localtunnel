@@ -124,7 +124,13 @@ export async function openTunnel(options: TunnelOptions): Promise<Tunnel> {
         await process.status;
       }
       logger.error("The tunnel URL is not found: {stdout}", { stdout: buffer });
-      throw new Error("The tunnel URL is not found.");
+      if (options.service != null) {
+        throw new Error("The tunnel URL is not found.");
+      }
+      return openTunnel({
+        ...options,
+        exclude: [...(options.exclude ?? []), service],
+      });
     }
     buffer += decoder.decode(value);
     const match = service.urlPattern.exec(buffer);
