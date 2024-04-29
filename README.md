@@ -53,7 +53,7 @@ Changelog
 
 ### Version 0.2.0
 
-To be released.
+Released on April 29, 2024.
 
  -  Added `exclude` option to `TunnelOptions` interface.
  -  Now `openTunnel()` automatically retries with another service if the first
