@@ -3,7 +3,7 @@
   "version": "0.3.0",
   "exports": "./mod.ts",
   "imports": {
-    "@logtape/logtape": "jsr:@logtape/logtape@^0.2.2"
+    "@logtape/logtape": "jsr:@logtape/logtape@^0.4.0"
   },
   "lock": false,
   "tasks": {
