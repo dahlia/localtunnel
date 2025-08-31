@@ -7,8 +7,9 @@ localtunnel
 [![npm][npm badge]][npm]
 
 This package is a simple wrapper around the local tunneling services.
-Currently it supports [localhost.run] and [serveo.net].  The module is designed
-to be simple to use and to provide a consistent interface to both services.
+Currently it supports [localhost.run], [serveo.net], and [Pinggy].
+The module is designed to be simple to use and to provide a consistent interface
+to those services.
 
 [JSR]: https://jsr.io/@hongminhee/localtunnel
 [JSR badge]: https://jsr.io/badges/@hongminhee/localtunnel
@@ -16,6 +17,7 @@ to be simple to use and to provide a consistent interface to both services.
 [npm badge]: https://img.shields.io/npm/v/@hongminhee/localtunnel?logo=npm
 [localhost.run]: https://localhost.run/
 [serveo.net]: https://serveo.net/
+[Pinggy]: https://pinggy.io/
 
 
 Installation
@@ -64,6 +66,11 @@ To be released.
 
  -  Added support for Node.js and Bun.
  -  The package is now published on [npm] as well as [JSR].
+ -  Every field in `Service`, `Tunnel`, and `TunnelOptions` is now `readonly`.
+ -  Added `extraOptions` and `extraArgs` fields to the `Service` interface.
+ -  Added `"pinggy.io"` to the `ServiceName` type.  [[#1]]
+
+[#1]: https://github.com/dahlia/localtunnel/issues/1
 
 ### Version 0.2.0
 

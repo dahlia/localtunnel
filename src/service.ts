@@ -5,28 +5,40 @@ export interface Service {
   /**
    * The host of the service.
    */
-  host: string;
+  readonly host: string;
 
   /**
    * The port of the service.
    */
-  port: number;
+  readonly port: number;
 
   /**
    * The login name for the service, if any.
    */
-  user?: string;
+  readonly user?: string;
 
   /**
    * The URL pattern of the service, if any.
    */
-  urlPattern: RegExp;
+  readonly urlPattern: RegExp;
+
+  /**
+   * Extra options for the `ssh` command, if any.
+   * @since 0.3.0
+   */
+  readonly extraOptions?: readonly string[];
+
+  /**
+   * Extra arguments for the `ssh` command, if any.
+   * @since 0.3.0
+   */
+  readonly extraArgs?: readonly string[];
 }
 
 /**
  * The name of the service.
  */
-export type ServiceName = "localhost.run" | "serveo.net";
+export type ServiceName = "localhost.run" | "serveo.net" | "pinggy.io";
 
 /**
  * Available services.
@@ -41,7 +53,14 @@ export const SERVICES: Record<ServiceName, Service> = {
   "serveo.net": {
     host: "serveo.net",
     port: 80,
-    urlPattern: /https:\/\/[a-f0-9]+.serveo.net/,
+    urlPattern: /https:\/\/[a-f0-9]+\.serveo\.net/,
+  } satisfies Service,
+  "pinggy.io": {
+    host: "a.pinggy.io:443",
+    port: 0,
+    urlPattern: /https:\/\/[a-z0-9-]+\.a\.free\.pinggy\.link/,
+    extraOptions: ["-o", "ServerAliveInterval=30", "-t"],
+    extraArgs: ["x:xff"],
   } satisfies Service,
 };
 

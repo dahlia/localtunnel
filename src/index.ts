@@ -1,5 +1,5 @@
 import { getLogger, type Logger } from "@logtape/logtape";
-import { type ChildProcess, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
 import {
   chooseService,
   type Service,
@@ -13,7 +13,7 @@ const logger: Logger = getLogger("localtunnel");
  * Checks if `ssh` is installed on the system.
  * @returns `true` if `ssh` is installed, `false` otherwise.
  */
-export async function isSshInstalled(): Promise<boolean> {
+export function isSshInstalled(): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
     const child = spawn("ssh", ["-V"], { stdio: "ignore" });
     child.on("close", (code) => {
@@ -32,19 +32,19 @@ export interface TunnelOptions {
   /**
    * The local port to expose.
    */
-  port: number;
+  readonly port: number;
 
   /**
    * The service to use.  If not provided, a random service will be chosen.
    * If provided, the `exclude` option is ignored.
    */
-  service?: Service | ServiceName;
+  readonly service?: Service | ServiceName;
 
   /**
    * The services to exclude from the random selection.  If the `service` option
    * is provided, this option is ignored.
    */
-  exclude?: (ServiceName | Service)[];
+  readonly exclude?: (ServiceName | Service)[];
 }
 
 /**
@@ -54,17 +54,17 @@ export interface Tunnel {
   /**
    * The public URL of the tunnel.
    */
-  url: URL;
+  readonly url: URL;
 
   /**
    * The local port being exposed.
    */
-  localPort: number;
+  readonly localPort: number;
 
   /**
    * The process ID of the `ssh` process.
    */
-  pid: number | undefined;
+  readonly pid: number | undefined;
 
   /**
    * Closes the tunnel.
@@ -96,12 +96,19 @@ export async function openTunnel(options: TunnelOptions): Promise<Tunnel> {
     ? SERVICES[options.service]
     : options.service ?? chooseService(options.exclude);
 
+  const sshLoc = service.host.split(":");
+  const sshHost = sshLoc[0];
+  const sshPort = sshLoc[1] ?? "22";
   const args = [
+    "-p",
+    sshPort,
     "-o",
     "StrictHostKeyChecking no",
     "-R",
     `${service.port}:localhost:${options.port}`,
-    service.user == null ? service.host : `${service.user}@${service.host}`,
+    ...(service.extraOptions ?? []),
+    service.user == null ? sshHost : `${service.user}@${sshHost}`,
+    ...(service.extraArgs ?? []),
   ];
 
   logger.debug(
@@ -126,6 +133,7 @@ export async function openTunnel(options: TunnelOptions): Promise<Tunnel> {
           url,
           localPort: options.port,
           pid: process.pid,
+          // deno-lint-ignore require-await
           async close() {
             logger.debug("Closing the tunnel...");
             process.kill();
@@ -134,7 +142,7 @@ export async function openTunnel(options: TunnelOptions): Promise<Tunnel> {
       }
     });
 
-    process.on("close", (code) => {
+    process.on("close", (_code) => {
       if (!resolved) {
         logger.error("The tunnel URL is not found: {stdout}", {
           stdout: buffer,
