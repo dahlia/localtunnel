@@ -62,7 +62,7 @@ Changelog
 
 ### Version 0.3.0
 
-To be released.
+Released on August 31, 2025.
 
  -  Added support for Node.js and Bun.
  -  The package is now published on [npm] as well as [JSR].
