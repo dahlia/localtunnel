@@ -1,4 +1,5 @@
 import { getLogger, type Logger } from "@logtape/logtape";
+import { type ChildProcess, spawn } from "node:child_process";
 import {
   chooseService,
   type Service,
@@ -13,14 +14,15 @@ const logger: Logger = getLogger("localtunnel");
  * @returns `true` if `ssh` is installed, `false` otherwise.
  */
 export async function isSshInstalled(): Promise<boolean> {
-  const cmd = new Deno.Command("ssh", {
-    args: ["-V"],
-    stderr: "null",
-    stdout: "null",
-    stdin: "null",
+  return new Promise<boolean>((resolve) => {
+    const child = spawn("ssh", ["-V"], { stdio: "ignore" });
+    child.on("close", (code) => {
+      resolve(code === 0);
+    });
+    child.on("error", () => {
+      resolve(false);
+    });
   });
-  const { success } = await cmd.output();
-  return success;
 }
 
 /**
@@ -62,7 +64,7 @@ export interface Tunnel {
   /**
    * The process ID of the `ssh` process.
    */
-  pid: number;
+  pid: number | undefined;
 
   /**
    * Closes the tunnel.
@@ -93,64 +95,65 @@ export async function openTunnel(options: TunnelOptions): Promise<Tunnel> {
   const service: Service = typeof options.service === "string"
     ? SERVICES[options.service]
     : options.service ?? chooseService(options.exclude);
-  const cmdOpts: Deno.CommandOptions = {
-    args: [
-      "-o",
-      "StrictHostKeyChecking no",
-      "-R",
-      `${service.port}:localhost:${options.port}`,
-      service.user == null ? service.host : `${service.user}@${service.host}`,
-    ],
-    stdin: "piped",
-    stdout: "piped",
-    stderr: "null",
-  };
-  const cmd = new Deno.Command("ssh", cmdOpts);
+
+  const args = [
+    "-o",
+    "StrictHostKeyChecking no",
+    "-R",
+    `${service.port}:localhost:${options.port}`,
+    service.user == null ? service.host : `${service.user}@${service.host}`,
+  ];
+
   logger.debug(
     "Spawning the ssh process: {command}",
-    { command: { command: "ssh", ...cmdOpts } },
+    { command: { command: "ssh", args } },
   );
-  const process = cmd.spawn();
-  const reader = process.stdout.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  let url: URL;
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) {
-      try {
-        process.kill();
-      } catch (_) {
-        await process.status;
+
+  return new Promise<Tunnel>((resolve, reject) => {
+    const process = spawn("ssh", args, { stdio: ["pipe", "pipe", "ignore"] });
+    let buffer = "";
+    let url: URL;
+    let resolved = false;
+
+    process.stdout?.on("data", (data: Uint8Array) => {
+      buffer += data.toString();
+      const match = service.urlPattern.exec(buffer);
+      if (match != null && !resolved) {
+        resolved = true;
+        url = new URL(match[0]);
+        logger.debug("The tunnel URL is found: {url}", { url: url.href });
+        resolve({
+          url,
+          localPort: options.port,
+          pid: process.pid,
+          async close() {
+            logger.debug("Closing the tunnel...");
+            process.kill();
+          },
+        });
       }
-      logger.error("The tunnel URL is not found: {stdout}", { stdout: buffer });
-      if (options.service != null) {
-        throw new Error("The tunnel URL is not found.");
+    });
+
+    process.on("close", (code) => {
+      if (!resolved) {
+        logger.error("The tunnel URL is not found: {stdout}", {
+          stdout: buffer,
+        });
+        if (options.service != null) {
+          reject(new Error("The tunnel URL is not found."));
+        } else {
+          resolve(openTunnel({
+            ...options,
+            exclude: [...(options.exclude ?? []), service],
+          }));
+        }
       }
-      return openTunnel({
-        ...options,
-        exclude: [...(options.exclude ?? []), service],
-      });
-    }
-    buffer += decoder.decode(value);
-    const match = service.urlPattern.exec(buffer);
-    if (match != null) {
-      url = new URL(match[0]);
-      logger.debug("The tunnel URL is found: {url}", { url: url.href });
-      break;
-    }
-  }
-  return {
-    url,
-    localPort: options.port,
-    pid: process.pid,
-    async close() {
-      logger.debug("Closing the tunnel...");
-      try {
-        process.kill();
-      } catch (_) {
-        await process.status;
+    });
+
+    process.on("error", (error) => {
+      if (!resolved) {
+        reject(error);
       }
-    },
-  };
+    });
+  });
 }

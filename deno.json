@@ -1,7 +1,8 @@
 {
   "name": "@hongminhee/localtunnel",
   "version": "0.3.0",
-  "exports": "./mod.ts",
+  "license": "MIT",
+  "exports": "./src/index.ts",
   "imports": {
     "@logtape/logtape": "jsr:@logtape/logtape@^1.0.4"
   },

@@ -4,13 +4,16 @@ localtunnel
 ===========
 
 [![JSR][JSR badge]][JSR]
+[![npm][npm badge]][npm]
 
-This Deno module is a simple wrapper around the local tunneling services.
+This package is a simple wrapper around the local tunneling services.
 Currently it supports [localhost.run] and [serveo.net].  The module is designed
 to be simple to use and to provide a consistent interface to both services.
 
 [JSR]: https://jsr.io/@hongminhee/localtunnel
 [JSR badge]: https://jsr.io/badges/@hongminhee/localtunnel
+[npm]: https://www.npmjs.com/package/@hongminhee/localtunnel
+[npm badge]: https://img.shields.io/npm/v/@hongminhee/localtunnel?logo=npm
 [localhost.run]: https://localhost.run/
 [serveo.net]: https://serveo.net/
 
@@ -18,10 +21,14 @@ to be simple to use and to provide a consistent interface to both services.
 Installation
 ------------
 
-It is available on [JSR]:
+It is available on [JSR] and [npm]:
 
 ~~~~ console
-deno add @hongminhee/localtunnel
+deno add --jsr @hongminhee/localtunnel  # Deno
+npm  add       @hongminhee/localtunnel  # npm
+pnpm add       @hongminhee/localtunnel  # pnpm
+yarn add       @hongminhee/localtunnel  # Yarn
+bun  add       @hongminhee/localtunnel  # Bun
 ~~~~
 
 
@@ -54,6 +61,9 @@ Changelog
 ### Version 0.3.0
 
 To be released.
+
+ -  Added support for Node.js and Bun.
+ -  The package is now published on [npm] as well as [JSR].
 
 ### Version 0.2.0
 
