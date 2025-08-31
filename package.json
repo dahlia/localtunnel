@@ -1,6 +1,6 @@
 {
   "name": "@hongminhee/localtunnel",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A simple wrapper around the local tunneling services",
   "keywords": ["localtunnel", "tunnel"],
   "license": "MIT",
