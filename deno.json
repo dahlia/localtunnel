@@ -3,9 +3,11 @@
   "version": "0.3.0",
   "exports": "./mod.ts",
   "imports": {
-    "@logtape/logtape": "jsr:@logtape/logtape@^0.4.0"
+    "@logtape/logtape": "jsr:@logtape/logtape@^1.0.4"
   },
-  "lock": false,
+  "exclude": [
+    ".github/"
+  ],
   "tasks": {
     "check": "deno fmt --check && deno check **/*.ts",
     "hooks:install": "deno run --allow-read=deno.json,.git/hooks/ --allow-write=.git/hooks/ jsr:@hongminhee/deno-task-hooks",

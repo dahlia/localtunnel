@@ -1,0 +1,16 @@
+{
+  "version": "5",
+  "specifiers": {
+    "jsr:@logtape/logtape@^1.0.4": "1.0.4"
+  },
+  "jsr": {
+    "@logtape/logtape@1.0.4": {
+      "integrity": "6ada87764d995b1033c352a17fd9e20b217f3672083bc2d8debe356eac03fe10"
+    }
+  },
+  "workspace": {
+    "dependencies": [
+      "jsr:@logtape/logtape@^1.0.4"
+    ]
+  }
+}
