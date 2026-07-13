@@ -1,11 +1,13 @@
 import { getLogger, type Logger } from "@logtape/logtape";
-import { type ChildProcess, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
+import { validateKnownHosts } from "./known_hosts.ts";
 import { chooseServiceName, type Service, SERVICES } from "./service.ts";
 import {
   DEFAULT_STARTUP_TIMEOUT,
+  startTunnelProcess,
+  TunnelSetupError,
   TunnelStartupError,
   validateStartupTimeout,
-  waitForTunnelUrl,
 } from "./tunnel_process.ts";
 
 export { type Service, SERVICES } from "./service.ts";
@@ -127,7 +129,8 @@ export interface Tunnel {
   readonly pid: number | undefined;
 
   /**
-   * Closes the tunnel.
+   * Closes the tunnel and resolves after the SSH process and its temporary
+   * resources have been cleaned up.
    */
   close(): Promise<void>;
 }
@@ -174,56 +177,35 @@ async function openTunnelWithServices(
   }
   const startupTimeout = options.startupTimeout ?? DEFAULT_STARTUP_TIMEOUT;
   validateStartupTimeout(startupTimeout);
+  if (service.knownHosts != null) validateKnownHosts(service.knownHosts);
   const sshInstalled = await isSshInstalled();
   if (!sshInstalled) {
     throw new Error("The ssh is not installed on the system.");
   }
 
-  const sshLoc = service.host.split(":");
-  const sshHost = sshLoc[0];
-  const sshPort = sshLoc[1] ?? "22";
-  const args = [
-    "-p",
-    sshPort,
-    "-o",
-    "StrictHostKeyChecking no",
-    "-R",
-    `${service.port}:localhost:${options.port}`,
-    ...(service.extraOptions ?? []),
-    service.user == null ? sshHost : `${service.user}@${sshHost}`,
-    ...(service.extraArgs ?? []),
-  ];
-
-  logger.debug(
-    "Spawning the ssh process: {command}",
-    { command: { command: "ssh", args } },
-  );
-
-  let process: ChildProcess;
   try {
-    process = spawn("ssh", args, { stdio: ["pipe", "pipe", "ignore"] });
-    const url = await waitForTunnelUrl(
-      process,
-      service.urlPattern,
+    const tunnelProcess = await startTunnelProcess(
+      service,
+      options.port,
       startupTimeout,
     );
-    logger.debug("The tunnel URL is found: {url}", { url: url.href });
+    logger.debug("The tunnel URL is found: {url}", {
+      url: tunnelProcess.url.href,
+    });
     return {
-      url,
+      url: tunnelProcess.url,
       localPort: options.port,
-      pid: process.pid,
-      // deno-lint-ignore require-await
-      async close() {
-        logger.debug("Closing the tunnel...");
-        process.kill();
-      },
+      pid: tunnelProcess.pid,
+      close: tunnelProcess.close,
     };
   } catch (error) {
+    if (error instanceof TunnelSetupError) throw error.cause;
     const reason = error instanceof Error ? error : new Error(String(error));
     logger.error("Failed to open a tunnel with {service}: {error}", {
       service: serviceName,
       error: reason,
       stdout: reason instanceof TunnelStartupError ? reason.stdout : "",
+      stderr: reason instanceof TunnelStartupError ? reason.stderr : "",
     });
     if (options.service != null) throw reason;
     return await openTunnelWithServices({

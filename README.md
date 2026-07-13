@@ -58,8 +58,11 @@ import { openTunnel, type Service, SERVICES } from "@hongminhee/localtunnel";
 const services = {
   "pinggy.io": SERVICES["pinggy.io"],
   custom: {
-    host: "tunnel.example.com",
+    host: "tunnel.example.com:2222",
     port: 80,
+    knownHosts: {
+      "[tunnel.example.com]:2222": ["ssh-ed25519 AAAA..."],
+    },
     urlPattern: /https:\/\/[^\s]+\.example\.com/,
   },
 } satisfies Readonly<Record<string, Service>>;
@@ -77,6 +80,15 @@ and retries with the remaining services when a connection fails or does not
 provide a URL within 10 seconds.  The startup deadline can be changed with the
 `startupTimeout` option.
 
+Set a service's `knownHosts` field to pin its SSH host keys.  The object maps
+OpenSSH host patterns to arrays of public keys; use the `[hostname]:port` form
+for a nonstandard port and list multiple keys during key rotation.  Each key
+must be a single public-key line without the host pattern.  When `knownHosts`
+is present, localtunnel uses only those keys from a private temporary
+`known_hosts` file, enables strict host-key checking, and removes the file when
+startup fails or the tunnel closes.  Omitting `knownHosts` retains the legacy
+non-strict behavior.  The built-in services in [`SERVICES`] have pinned keys.
+
 For more information, see the [API documentation][JSR].
 
 [`openTunnel()`]: https://jsr.io/@hongminhee/localtunnel/doc/~/openTunnel
@@ -93,6 +105,12 @@ Changelog
 ### Version 0.5.0
 
 To be released.
+
+ -  Added the `knownHosts` field to `Service`.  Configured services now verify
+    SSH host keys strictly using a private temporary `known_hosts` file that is
+    removed after startup failure or tunnel shutdown.
+ -  Pinned the current SSH host keys for the built-in Serveo and Pinggy
+    services.
 
 ### Version 0.4.0
 

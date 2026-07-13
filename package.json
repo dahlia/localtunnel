@@ -47,9 +47,12 @@
   "devDependencies": {
     "@types/node": "^24.3.0",
     "tsdown": "^0.14.2",
+    "tsx": "^4.23.0",
     "typescript": "^5.9.2"
   },
   "scripts": {
+    "test:node": "tsx --test src/known_hosts.test.ts src/service.test.ts src/ssh_tunnel.test.ts src/tunnel_process.test.ts",
+    "test:bun": "bun test ./scripts/bun_test_runner.js",
     "build": "tsdown",
     "prepack": "tsdown",
     "prepublish": "tsdown"

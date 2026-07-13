@@ -391,6 +391,7 @@
         "npm:@logtape/logtape@^1.0.4",
         "npm:@types/node@^24.3.0",
         "npm:tsdown@~0.14.2",
+        "npm:tsx@^4.23.0",
         "npm:typescript@^5.9.2"
       ]
     }

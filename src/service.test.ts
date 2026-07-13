@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { Buffer } from "node:buffer";
+import { createHash } from "node:crypto";
 import {
   type CustomTunnelOptions,
   openTunnel,
@@ -8,6 +9,7 @@ import {
   type TunnelOptions,
 } from "./index.ts";
 import { chooseServiceName } from "./service.ts";
+import { test } from "./test_runner.ts";
 
 const CUSTOM_SERVICES = {
   custom: {
@@ -65,6 +67,52 @@ test("the Serveo service recognizes current tunnel URLs", () => {
   assert.match(
     "https://example123.serveo.net",
     SERVICES["serveo.net"].urlPattern,
+  );
+});
+
+test("the built-in services pin their current SSH host keys", () => {
+  const fingerprints = Object.fromEntries(
+    Object.entries(SERVICES).map(([name, service]) => {
+      assert.ok(service.knownHosts);
+      const keys = Object.values(service.knownHosts).flat();
+      assert.equal(keys.length, 1);
+      const encodedKey = keys[0].split(/\s+/, 2)[1];
+      const fingerprint = createHash("sha256")
+        .update(Buffer.from(encodedKey, "base64"))
+        .digest("base64")
+        .replace(/=+$/, "");
+      return [name, `SHA256:${fingerprint}`];
+    }),
+  );
+
+  assert.deepEqual(fingerprints, {
+    "serveo.net": "SHA256:07jcXlJ4SkBnyTmaVnmTpXuBiRx2+Q2adxbttO9gt0M",
+    "pinggy.io": "SHA256:nFd5rfJMGuZXvfeRzJ/BtT3TfksAxTWMajcrHRcI7AM",
+  });
+  assert.ok(Object.hasOwn(SERVICES["serveo.net"].knownHosts!, "serveo.net"));
+  assert.ok(
+    Object.hasOwn(
+      SERVICES["pinggy.io"].knownHosts!,
+      "[free.pinggy.io]:443",
+    ),
+  );
+});
+
+test("openTunnel rejects empty known-host key arrays before invoking SSH", async () => {
+  await assert.rejects(
+    openTunnel({
+      port: 8000,
+      services: {
+        invalid: {
+          host: "tunnel.example.com",
+          port: 80,
+          urlPattern: /example/,
+          knownHosts: { "tunnel.example.com": [] },
+        },
+      },
+      service: "invalid",
+    }),
+    { name: "TypeError", message: /at least one public key/ },
   );
 });
 

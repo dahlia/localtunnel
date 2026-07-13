@@ -3,20 +3,61 @@ on: [push, pull_request]
 
 jobs:
   check:
+    strategy:
+      matrix:
+        deno-version: [v2.3.x, v2.x]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: denoland/setup-deno@v2
       with:
-        deno-version: v2.x
+        deno-version: ${{ matrix.deno-version }}
     - run: deno install
     - run: deno task check
     - run: |
         set -ex
         [[ "$(jq -r .version deno.json)" = "$(jq -r .version package.json)" ]]
 
+  runtime:
+    strategy:
+      matrix:
+        include:
+        - runtime: node
+          os: ubuntu-latest
+        - runtime: node
+          os: windows-latest
+        - runtime: bun
+          os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+    - if: matrix.runtime == 'node'
+      uses: actions/setup-node@v6
+      with:
+        node-version: 20
+        package-manager-cache: false
+    - if: matrix.runtime == 'bun'
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: 1.2.0
+    - uses: pnpm/action-setup@v4
+      with:
+        version: latest
+        run_install: true
+    - if: matrix.runtime == 'node'
+      run: pnpm run test:node
+    - if: matrix.runtime == 'bun'
+      run: pnpm run test:bun
+    - run: pnpm run build
+    - if: matrix.runtime == 'node'
+      run: node --input-type=module --eval "import { SERVICES } from './dist/index.js'; if (!SERVICES['serveo.net'].knownHosts) throw new Error('Missing built-in host keys');"
+    - if: matrix.runtime == 'node'
+      run: node --eval "const { SERVICES } = require('./dist/index.cjs'); if (!SERVICES['serveo.net'].knownHosts) throw new Error('Missing built-in host keys');"
+    - if: matrix.runtime == 'bun'
+      run: bun --eval "import { SERVICES } from './dist/index.js'; if (!SERVICES['serveo.net'].knownHosts) throw new Error('Missing built-in host keys');"
+
   publish:
-    needs: [check]
+    needs: [check, runtime]
     permissions:
       contents: read
       id-token: write

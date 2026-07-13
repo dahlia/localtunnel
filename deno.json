@@ -7,11 +7,13 @@
     "@logtape/logtape": "jsr:@logtape/logtape@^1.0.4"
   },
   "exclude": [
-    ".github/"
+    ".github/",
+    "scripts/"
   ],
   "tasks": {
     "check": "deno fmt --check && deno check **/*.ts && deno task test",
-    "test": "deno test",
+    "test": "deno test --allow-env --allow-read --allow-write && deno task test:write-only",
+    "test:write-only": "deno run --allow-env --allow-read=src/,scripts/ --allow-write scripts/deno_write_only_cleanup.ts",
     "hooks:install": "deno run --allow-read=deno.json,.git/hooks/ --allow-write=.git/hooks/ jsr:@hongminhee/deno-task-hooks",
     "hooks:pre-commit": "deno task check"
   }

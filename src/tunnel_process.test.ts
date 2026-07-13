@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import type { ChildProcess } from "node:child_process";
 import { EventEmitter } from "node:events";
 import { PassThrough } from "node:stream";
-import { test } from "node:test";
+import { test } from "./test_runner.ts";
 import {
   MAX_STARTUP_TIMEOUT,
   TunnelStartupError,
