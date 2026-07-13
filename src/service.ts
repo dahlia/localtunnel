@@ -38,15 +38,9 @@ export interface Service {
 /**
  * Available services.
  */
-type BuiltInServiceName = "localhost.run" | "serveo.net" | "pinggy.io";
+type BuiltInServiceName = "serveo.net" | "pinggy.io";
 
 export const SERVICES: Readonly<Record<BuiltInServiceName, Service>> = {
-  "localhost.run": {
-    host: "localhost.run",
-    port: 80,
-    user: "nokey",
-    urlPattern: /https:\/\/[a-f0-9]+\.lhr\.life/,
-  },
   "serveo.net": {
     host: "serveo.net",
     port: 80,

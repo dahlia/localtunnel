@@ -7,7 +7,7 @@ localtunnel
 [![npm][npm badge]][npm]
 
 This package is a simple wrapper around the local tunneling services.
-Currently it supports [localhost.run], [serveo.net], and [Pinggy].
+Currently it supports [serveo.net] and [Pinggy].
 The module is designed to be simple to use and to provide a consistent interface
 to those services.
 
@@ -15,7 +15,6 @@ to those services.
 [JSR badge]: https://jsr.io/badges/@hongminhee/localtunnel
 [npm]: https://www.npmjs.com/package/@hongminhee/localtunnel
 [npm badge]: https://img.shields.io/npm/v/@hongminhee/localtunnel?logo=npm
-[localhost.run]: https://localhost.run/
 [serveo.net]: https://serveo.net/
 [Pinggy]: https://pinggy.io/
 
@@ -57,7 +56,7 @@ The registry replaces the default services for the call and any retries:
 import { openTunnel, type Service, SERVICES } from "@hongminhee/localtunnel";
 
 const services = {
-  "localhost.run": SERVICES["localhost.run"],
+  "pinggy.io": SERVICES["pinggy.io"],
   custom: {
     host: "tunnel.example.com",
     port: 80,
@@ -106,6 +105,8 @@ To be released.
     service when SSH fails, exits, or does not provide a URL.
  -  Updated the Serveo URL pattern for its current `serveousercontent.com`
     domains.
+ -  Removed the `"localhost.run"` service from the default services registry
+    as it is no longer functional.
 
 ### Version 0.3.1
 

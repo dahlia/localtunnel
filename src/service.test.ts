@@ -21,7 +21,6 @@ const CUSTOM_SERVICES = {
 const SAME_SHAPE_SERVICES: Readonly<
   Record<keyof typeof SERVICES, Service>
 > = {
-  "localhost.run": CUSTOM_SERVICES.custom,
   "serveo.net": CUSTOM_SERVICES.custom,
   "pinggy.io": CUSTOM_SERVICES.custom,
 };
@@ -83,7 +82,7 @@ test("openTunnel rejects an unknown service name", async () => {
 if (false) {
   const defaultOptions: TunnelOptions = {
     port: 8000,
-    service: "localhost.run",
+    service: "serveo.net",
     startupTimeout: 5_000,
   };
   const customOptions: CustomTunnelOptions<typeof CUSTOM_SERVICES> = {
@@ -95,7 +94,7 @@ if (false) {
   const sameShapeOptions: CustomTunnelOptions<typeof SAME_SHAPE_SERVICES> = {
     port: 8000,
     services: SAME_SHAPE_SERVICES,
-    service: "localhost.run",
+    service: "serveo.net",
   };
   const interfaceOptions: CustomTunnelOptions<InterfaceServices> = {
     port: 8000,
@@ -112,7 +111,7 @@ if (false) {
     typeof SAME_SHAPE_SERVICES
   > = {
     port: 8000,
-    service: "localhost.run",
+    service: "serveo.net",
   };
   openTunnel(defaultOptions);
   openTunnel(customOptions);
@@ -155,12 +154,12 @@ if (false) {
   openTunnel({
     port: 8000,
     services: CUSTOM_SERVICES,
-    service: "localhost.run",
+    service: "serveo.net",
   });
   // @ts-expect-error Exclusions must be keys of the selected registry.
   openTunnel({ port: 8000, services: CUSTOM_SERVICES, exclude: ["missing"] });
   // @ts-expect-error Services are selected by name, not by object.
-  openTunnel({ port: 8000, service: SERVICES["localhost.run"] });
+  openTunnel({ port: 8000, service: SERVICES["serveo.net"] });
   // @ts-expect-error Exclusions are service names, not service objects.
   openTunnel({ port: 8000, exclude: [SERVICES["serveo.net"]] });
 }

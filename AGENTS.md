@@ -6,8 +6,8 @@ repository.
 ## Project Overview
 
 This is a TypeScript library that provides a simple wrapper around local
-tunneling services (localhost.run and serveo.net). The library is designed to
-work across multiple JavaScript runtimes: Deno, Node.js, and Bun.
+tunneling services (serveo.net and pinggy.io). The library is designed to work
+across multiple JavaScript runtimes: Deno, Node.js, and Bun.
 
 ## Development Commands
 
@@ -34,8 +34,7 @@ dependency management and script execution.
 
 1. **Service Layer** (`src/service.ts`):
    - Defines `Service` interface for tunnel service configurations
-   - Maintains `SERVICES` registry with localhost.run and serveo.net
-     configurations
+   - Maintains `SERVICES` registry with serveo.net and pinggy.io configurations
    - Provides service selection logic with exclusion support
 
 2. **Main API** (`src/index.ts`):
