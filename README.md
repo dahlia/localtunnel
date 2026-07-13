@@ -74,7 +74,9 @@ const tunnel = await openTunnel({
 
 The `service` and `exclude` options accept only keys from the selected
 registry.  If `service` is omitted, `openTunnel()` chooses a service at random
-and retries with the remaining services when a connection fails.
+and retries with the remaining services when a connection fails or does not
+provide a URL within 10 seconds.  The startup deadline can be changed with the
+`startupTimeout` option.
 
 For more information, see the [API documentation][JSR].
 
@@ -100,6 +102,10 @@ To be released.
     entry point.
  -  The `service` and `exclude` options now accept service names from the
     selected registry instead of `Service` objects.
+ -  Tunnel startup now times out after 10 seconds and falls back to another
+    service when SSH fails, exits, or does not provide a URL.
+ -  Updated the Serveo URL pattern for its current `serveousercontent.com`
+    domains.
 
 ### Version 0.3.1
 

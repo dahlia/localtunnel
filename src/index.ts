@@ -1,6 +1,12 @@
 import { getLogger, type Logger } from "@logtape/logtape";
-import { spawn } from "node:child_process";
+import { type ChildProcess, spawn } from "node:child_process";
 import { chooseServiceName, type Service, SERVICES } from "./service.ts";
+import {
+  DEFAULT_STARTUP_TIMEOUT,
+  TunnelStartupError,
+  validateStartupTimeout,
+  waitForTunnelUrl,
+} from "./tunnel_process.ts";
 
 export { type Service, SERVICES } from "./service.ts";
 
@@ -20,6 +26,7 @@ interface RuntimeTunnelOptions {
   readonly services?: object;
   readonly service?: string;
   readonly exclude?: readonly string[];
+  readonly startupTimeout?: number;
 }
 
 interface BaseTunnelOptions<
@@ -41,6 +48,13 @@ interface BaseTunnelOptions<
    * option is provided, this option is ignored.
    */
   readonly exclude?: readonly ServiceName<TServices>[];
+
+  /**
+   * The maximum number of milliseconds to wait for a service to provide a
+   * tunnel URL.  It must be between 0 and 2,147,483,647 milliseconds.  If
+   * omitted, the default is 10 seconds.
+   */
+  readonly startupTimeout?: number;
 }
 
 interface DefaultServicesOption {
@@ -158,6 +172,8 @@ async function openTunnelWithServices(
   if (service == null) {
     throw new Error(`Unknown service: ${serviceName}.`);
   }
+  const startupTimeout = options.startupTimeout ?? DEFAULT_STARTUP_TIMEOUT;
+  validateStartupTimeout(startupTimeout);
   const sshInstalled = await isSshInstalled();
   if (!sshInstalled) {
     throw new Error("The ssh is not installed on the system.");
@@ -183,53 +199,37 @@ async function openTunnelWithServices(
     { command: { command: "ssh", args } },
   );
 
-  return new Promise<Tunnel>((resolve, reject) => {
-    const process = spawn("ssh", args, { stdio: ["pipe", "pipe", "ignore"] });
-    let buffer = "";
-    let url: URL;
-    let resolved = false;
-
-    process.stdout?.on("data", (data: Uint8Array) => {
-      buffer += data.toString();
-      const match = service.urlPattern.exec(buffer);
-      if (match != null && !resolved) {
-        resolved = true;
-        url = new URL(match[0]);
-        logger.debug("The tunnel URL is found: {url}", { url: url.href });
-        resolve({
-          url,
-          localPort: options.port,
-          pid: process.pid,
-          // deno-lint-ignore require-await
-          async close() {
-            logger.debug("Closing the tunnel...");
-            process.kill();
-          },
-        });
-      }
+  let process: ChildProcess;
+  try {
+    process = spawn("ssh", args, { stdio: ["pipe", "pipe", "ignore"] });
+    const url = await waitForTunnelUrl(
+      process,
+      service.urlPattern,
+      startupTimeout,
+    );
+    logger.debug("The tunnel URL is found: {url}", { url: url.href });
+    return {
+      url,
+      localPort: options.port,
+      pid: process.pid,
+      // deno-lint-ignore require-await
+      async close() {
+        logger.debug("Closing the tunnel...");
+        process.kill();
+      },
+    };
+  } catch (error) {
+    const reason = error instanceof Error ? error : new Error(String(error));
+    logger.error("Failed to open a tunnel with {service}: {error}", {
+      service: serviceName,
+      error: reason,
+      stdout: reason instanceof TunnelStartupError ? reason.stdout : "",
     });
-
-    process.on("close", (_code) => {
-      if (!resolved) {
-        logger.error("The tunnel URL is not found: {stdout}", {
-          stdout: buffer,
-        });
-        if (options.service != null) {
-          reject(new Error("The tunnel URL is not found."));
-        } else {
-          resolve(openTunnelWithServices({
-            ...options,
-            services,
-            exclude: [...(options.exclude ?? []), serviceName],
-          }));
-        }
-      }
+    if (options.service != null) throw reason;
+    return await openTunnelWithServices({
+      ...options,
+      services,
+      exclude: [...(options.exclude ?? []), serviceName],
     });
-
-    process.on("error", (error) => {
-      if (!resolved) {
-        reject(error);
-      }
-    });
-  });
+  }
 }

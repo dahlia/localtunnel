@@ -50,7 +50,7 @@ export const SERVICES: Readonly<Record<BuiltInServiceName, Service>> = {
   "serveo.net": {
     host: "serveo.net",
     port: 80,
-    urlPattern: /https:\/\/[a-f0-9]+\.serveo\.net/,
+    urlPattern: /https:\/\/[a-z0-9-]+\.(?:serveo\.net|serveousercontent\.com)/,
   },
   "pinggy.io": {
     host: "free.pinggy.io:443",

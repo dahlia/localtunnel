@@ -58,6 +58,17 @@ test("chooseServiceName rejects an empty or exhausted registry", () => {
   );
 });
 
+test("the Serveo service recognizes current tunnel URLs", () => {
+  assert.match(
+    "https://example-123.serveousercontent.com",
+    SERVICES["serveo.net"].urlPattern,
+  );
+  assert.match(
+    "https://example123.serveo.net",
+    SERVICES["serveo.net"].urlPattern,
+  );
+});
+
 test("openTunnel rejects an unknown service name", async () => {
   await assert.rejects(
     openTunnel({
@@ -73,6 +84,7 @@ if (false) {
   const defaultOptions: TunnelOptions = {
     port: 8000,
     service: "localhost.run",
+    startupTimeout: 5_000,
   };
   const customOptions: CustomTunnelOptions<typeof CUSTOM_SERVICES> = {
     port: 8000,
