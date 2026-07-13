@@ -62,7 +62,7 @@ Changelog
 
 ### Version 0.3.1
 
-To be released.
+Released on July 13, 2026.
 
  -  Updated the host domain of `"pinggy.io"` service from `a.pinggy.io` to
     `free.pinggy.io` and updated its URL pattern.
