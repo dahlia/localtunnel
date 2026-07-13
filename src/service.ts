@@ -56,9 +56,10 @@ export const SERVICES: Record<ServiceName, Service> = {
     urlPattern: /https:\/\/[a-f0-9]+\.serveo\.net/,
   } satisfies Service,
   "pinggy.io": {
-    host: "a.pinggy.io:443",
+    host: "free.pinggy.io:443",
     port: 0,
-    urlPattern: /https:\/\/[a-z0-9-]+\.a\.free\.pinggy\.link/,
+    urlPattern:
+      /https:\/\/[a-z0-9-]+\.(?:free\.pinggy\.net|run\.pinggy-free\.link)/,
     extraOptions: ["-o", "ServerAliveInterval=30", "-t"],
     extraArgs: ["x:xff"],
   } satisfies Service,
