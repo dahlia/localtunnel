@@ -26,6 +26,11 @@ jobs:
     - uses: denoland/setup-deno@v1
       with:
         deno-version: v2.x
+    - uses: actions/setup-node@v6
+      with:
+        node-version: 24
+        registry-url: https://registry.npmjs.org
+        package-manager-cache: false
     - uses: pnpm/action-setup@v4
       with:
         version: latest
@@ -52,16 +57,12 @@ jobs:
     - if: github.event_name == 'pull_request'
       run: |
         deno publish --dry-run --allow-dirty
-        pnpm publish --access public --no-git-checks --force --dry-run
+        npm publish --access public --dry-run
     - if: github.event_name == 'push'
       run: |
         deno publish --allow-dirty
-        pnpm config set //registry.npmjs.org/:_authToken "$NPM_AUTH_TOKEN"
         if [[ "$GITHUB_REF_TYPE" = "tag" ]]; then
-          pnpm publish --access public --no-git-checks --force
+          npm publish --access public
         else
-          pnpm publish --access public --no-git-checks --force --tag dev
+          npm publish --access public --tag dev
         fi
-      env:
-        NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-        NPM_CONFIG_PROVENANCE: "true"
