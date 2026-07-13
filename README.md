@@ -102,6 +102,10 @@ For more information, see the [API documentation][JSR].
 Changelog
 ---------
 
+### Version 0.5.1
+
+To be released.
+
 ### Version 0.5.0
 
 Released on July 14, 2026.
