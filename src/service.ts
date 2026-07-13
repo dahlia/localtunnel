@@ -36,25 +36,22 @@ export interface Service {
 }
 
 /**
- * The name of the service.
- */
-export type ServiceName = "localhost.run" | "serveo.net" | "pinggy.io";
-
-/**
  * Available services.
  */
-export const SERVICES: Record<ServiceName, Service> = {
+type BuiltInServiceName = "localhost.run" | "serveo.net" | "pinggy.io";
+
+export const SERVICES: Readonly<Record<BuiltInServiceName, Service>> = {
   "localhost.run": {
     host: "localhost.run",
     port: 80,
     user: "nokey",
     urlPattern: /https:\/\/[a-f0-9]+\.lhr\.life/,
-  } satisfies Service,
+  },
   "serveo.net": {
     host: "serveo.net",
     port: 80,
     urlPattern: /https:\/\/[a-f0-9]+\.serveo\.net/,
-  } satisfies Service,
+  },
   "pinggy.io": {
     host: "free.pinggy.io:443",
     port: 0,
@@ -62,38 +59,33 @@ export const SERVICES: Record<ServiceName, Service> = {
       /https:\/\/[a-z0-9-]+\.(?:free\.pinggy\.net|run\.pinggy-free\.link)/,
     extraOptions: ["-o", "ServerAliveInterval=30", "-t"],
     extraArgs: ["x:xff"],
-  } satisfies Service,
+  },
 };
 
-/**
- * Randomly chooses a service.
- * @param exclude The services to exclude.
- * @returns The chosen service.
- * @throws {Error} If no available services.
- */
-export function chooseService(exclude?: (Service | ServiceName)[]): Service {
-  const excludeServices = (exclude ?? []).map((service) =>
-    typeof service === "string" ? SERVICES[service] : service
-  );
-  const services = Object.values(SERVICES)
-    .filter((service) => {
-      return !excludeServices.some((excludeService) =>
-        doServicesEqual(service, excludeService)
-      );
-    });
-  if (services.length < 1) {
-    throw new Error("No available services.");
-  }
-  return services[Math.floor(Math.random() * services.length)];
-}
+type ServiceRegistry = Readonly<Record<string, Service>>;
+
+type ServiceName<TServices extends ServiceRegistry> = Extract<
+  keyof TServices,
+  string
+>;
 
 /**
- * Checks if two services are equal.
- * @param a A service.
- * @param b Another service.
- * @returns `true` if the services are equal, `false` otherwise.
+ * Randomly chooses a service name.
+ * @param services The available services.
+ * @param exclude The service names to exclude.
+ * @returns The chosen service name.
+ * @throws {Error} If no available services.
  */
-export function doServicesEqual(a: Service, b: Service): boolean {
-  return a.host === b.host && a.port === b.port && a.user === b.user &&
-    a.urlPattern === b.urlPattern;
+export function chooseServiceName<TServices extends ServiceRegistry>(
+  services: TServices,
+  exclude: readonly ServiceName<TServices>[] = [],
+): ServiceName<TServices> {
+  const excluded = new Set<string>(exclude);
+  const serviceNames = Object.keys(services).filter((serviceName) =>
+    !excluded.has(serviceName)
+  ) as ServiceName<TServices>[];
+  if (serviceNames.length < 1) {
+    throw new Error("No available services.");
+  }
+  return serviceNames[Math.floor(Math.random() * serviceNames.length)];
 }

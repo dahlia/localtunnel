@@ -49,9 +49,38 @@ alert("Press Enter to close the tunnel.");
 await tunnel.close();
 ~~~~
 
+By default, `openTunnel()` chooses from [`SERVICES`].  To use a different set
+of services, pass a name-to-[`Service`] registry through the `services` option.
+The registry replaces the default services for the call and any retries:
+
+~~~~ typescript
+import { openTunnel, type Service, SERVICES } from "@hongminhee/localtunnel";
+
+const services = {
+  "localhost.run": SERVICES["localhost.run"],
+  custom: {
+    host: "tunnel.example.com",
+    port: 80,
+    urlPattern: /https:\/\/[^\s]+\.example\.com/,
+  },
+} satisfies Readonly<Record<string, Service>>;
+
+const tunnel = await openTunnel({
+  port: 8000,
+  services,
+  service: "custom",
+});
+~~~~
+
+The `service` and `exclude` options accept only keys from the selected
+registry.  If `service` is omitted, `openTunnel()` chooses a service at random
+and retries with the remaining services when a connection fails.
+
 For more information, see the [API documentation][JSR].
 
 [`openTunnel()`]: https://jsr.io/@hongminhee/localtunnel/doc/~/openTunnel
+[`Service`]: https://jsr.io/@hongminhee/localtunnel/doc/~/Service
+[`SERVICES`]: https://jsr.io/@hongminhee/localtunnel/doc/~/SERVICES
 [`Tunnel`]: https://jsr.io/@hongminhee/localtunnel/doc/~/Tunnel
 [`url`]: https://jsr.io/@hongminhee/localtunnel/doc/~/Tunnel.url
 [`close()`]: https://jsr.io/@hongminhee/localtunnel/doc/~/Tunnel.close
@@ -63,6 +92,14 @@ Changelog
 ### Version 0.4.0
 
 To be released.
+
+ -  Added the `services` option to `TunnelOptions` and the
+    `CustomTunnelOptions` type for callers that provide a custom registry.  A
+    custom registry replaces `SERVICES` for selection and retries.
+ -  Exported the `Service` interface and `SERVICES` constant from the package
+    entry point.
+ -  The `service` and `exclude` options now accept service names from the
+    selected registry instead of `Service` objects.
 
 ### Version 0.3.1
 

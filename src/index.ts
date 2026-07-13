@@ -1,11 +1,63 @@
 import { getLogger, type Logger } from "@logtape/logtape";
 import { spawn } from "node:child_process";
-import {
-  chooseService,
-  type Service,
-  type ServiceName,
-  SERVICES,
-} from "./service.ts";
+import { chooseServiceName, type Service, SERVICES } from "./service.ts";
+
+export { type Service, SERVICES } from "./service.ts";
+
+type ServiceRegistry = Readonly<Record<string, Service>>;
+
+type ServiceRegistryShape<TServices> = {
+  readonly [TName in keyof TServices]-?: Service;
+};
+
+type ServiceName<TServices> = Extract<
+  keyof TServices,
+  string
+>;
+
+interface RuntimeTunnelOptions {
+  readonly port: number;
+  readonly services?: object;
+  readonly service?: string;
+  readonly exclude?: readonly string[];
+}
+
+interface BaseTunnelOptions<
+  TServices extends ServiceRegistryShape<TServices>,
+> {
+  /**
+   * The local port to expose.
+   */
+  readonly port: number;
+
+  /**
+   * The name of the service to use.  If not provided, a random service will be
+   * chosen.  If provided, the `exclude` option is ignored.
+   */
+  readonly service?: ServiceName<TServices>;
+
+  /**
+   * The service names to exclude from the random selection.  If the `service`
+   * option is provided, this option is ignored.
+   */
+  readonly exclude?: readonly ServiceName<TServices>[];
+}
+
+interface DefaultServicesOption {
+  /**
+   * The services to use.  If not provided, {@link SERVICES} will be used.
+   */
+  readonly services?: typeof SERVICES;
+}
+
+interface CustomServicesOption<
+  TServices extends ServiceRegistryShape<TServices>,
+> {
+  /**
+   * The services to use instead of {@link SERVICES}.
+   */
+  readonly services: TServices;
+}
 
 const logger: Logger = getLogger("localtunnel");
 
@@ -26,26 +78,20 @@ export function isSshInstalled(): Promise<boolean> {
 }
 
 /**
- * The tunnel options.
+ * The tunnel options using the default {@link SERVICES} registry.
  */
-export interface TunnelOptions {
-  /**
-   * The local port to expose.
-   */
-  readonly port: number;
+export type TunnelOptions =
+  & BaseTunnelOptions<typeof SERVICES>
+  & DefaultServicesOption;
 
-  /**
-   * The service to use.  If not provided, a random service will be chosen.
-   * If provided, the `exclude` option is ignored.
-   */
-  readonly service?: Service | ServiceName;
-
-  /**
-   * The services to exclude from the random selection.  If the `service` option
-   * is provided, this option is ignored.
-   */
-  readonly exclude?: (ServiceName | Service)[];
-}
+/**
+ * The tunnel options using a custom service registry.
+ */
+export type CustomTunnelOptions<
+  TServices extends ServiceRegistryShape<TServices>,
+> =
+  & BaseTunnelOptions<TServices>
+  & CustomServicesOption<TServices>;
 
 /**
  * The opened tunnel.
@@ -87,14 +133,35 @@ export interface Tunnel {
  * @returns The public URL of the tunnel.
  * @throws {Error} If the `ssh` is not installed on the system.
  */
-export async function openTunnel(options: TunnelOptions): Promise<Tunnel> {
+export function openTunnel(
+  options: TunnelOptions,
+): Promise<Tunnel>;
+export function openTunnel<
+  const TServices extends ServiceRegistryShape<TServices>,
+>(
+  options: CustomTunnelOptions<TServices>,
+): Promise<Tunnel>;
+export function openTunnel(options: RuntimeTunnelOptions): Promise<Tunnel> {
+  return openTunnelWithServices(options);
+}
+
+async function openTunnelWithServices(
+  options: RuntimeTunnelOptions,
+): Promise<Tunnel> {
+  const services = (options.services ?? SERVICES) as ServiceRegistry;
+  const serviceName = options.service ??
+    chooseServiceName(services, options.exclude);
+  if (!Object.hasOwn(services, serviceName)) {
+    throw new Error(`Unknown service: ${serviceName}.`);
+  }
+  const service = services[serviceName];
+  if (service == null) {
+    throw new Error(`Unknown service: ${serviceName}.`);
+  }
   const sshInstalled = await isSshInstalled();
   if (!sshInstalled) {
     throw new Error("The ssh is not installed on the system.");
   }
-  const service: Service = typeof options.service === "string"
-    ? SERVICES[options.service]
-    : options.service ?? chooseService(options.exclude);
 
   const sshLoc = service.host.split(":");
   const sshHost = sshLoc[0];
@@ -150,9 +217,10 @@ export async function openTunnel(options: TunnelOptions): Promise<Tunnel> {
         if (options.service != null) {
           reject(new Error("The tunnel URL is not found."));
         } else {
-          resolve(openTunnel({
+          resolve(openTunnelWithServices({
             ...options,
-            exclude: [...(options.exclude ?? []), service],
+            services,
+            exclude: [...(options.exclude ?? []), serviceName],
           }));
         }
       }
