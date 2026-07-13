@@ -104,7 +104,7 @@ Changelog
 
 ### Version 0.5.0
 
-To be released.
+Released on July 14, 2026.
 
  -  Added the `knownHosts` field to `Service`.  Configured services now verify
     SSH host keys strictly using a private temporary `known_hosts` file that is
