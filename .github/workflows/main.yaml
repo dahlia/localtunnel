@@ -42,7 +42,7 @@ jobs:
         bun-version: 1.2.0
     - uses: pnpm/action-setup@v4
       with:
-        version: latest
+        version: "10.34.5"
         run_install: true
     - if: matrix.runtime == 'node'
       run: pnpm run test:node
@@ -74,7 +74,7 @@ jobs:
         package-manager-cache: false
     - uses: pnpm/action-setup@v4
       with:
-        version: latest
+        version: "10.34.5"
         run_install: true
     - run: deno install
     - if: github.ref_type == 'branch'
