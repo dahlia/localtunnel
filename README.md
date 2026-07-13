@@ -92,7 +92,7 @@ Changelog
 
 ### Version 0.4.0
 
-To be released.
+Released on July 13, 2026.
 
  -  Added the `services` option to `TunnelOptions` and the
     `CustomTunnelOptions` type for callers that provide a custom registry.  A
